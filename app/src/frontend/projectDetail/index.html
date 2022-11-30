@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Manager</title>
+    <meta
+        content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;"
+        http-equiv="Content-Security-Policy">
+    <link href="./styles.css" rel="stylesheet" type="text/css">
+    <link href="./test.css" rel="stylesheet"/>
+
+</head>
+<body>
+<div class="loader-container" id="loader-container">
+    <div class="loader" id="loader"></div>
+</div>
+<div class="project-container --hidden" id="project-container">
+    <div class="project-info" id="project-info">
+        <label for="branches">Branches</label>
+        <div class="branches-select-container">
+            <select id="branches" name="branches">
+
+            </select>
+        </div>
+    </div>
+    <div class="fix-container">
+        <div class="android-container" id="android-container">
+            <div class="platform-android"><label>Android Cleaner</label></div>
+            <input checked id="android_node_modules" name="android_node_modules" type="checkbox"
+                   value="android_node_modules">
+            <label for="android_node_modules">Node Modules</label><br>
+            <input checked id="android_prepare" name="android_prepare" type="checkbox" value="prepare">
+            <label for="android_prepare">Prepare</label><br>
+            <input id="build-apk" name="build-apk" type="checkbox" value="build-apk">
+            <label for="build-apk">Build APK</label><br>
+            <input id="build-bundle" name="build-bundle" type="checkbox" value="build-bundle">
+            <label for="build-bundle">Build BUNDLE</label><br><br>
+            <button class="android_cleaner_button" id="android_cleaner_button">Start Cleaner</button>
+        </div>
+        <div class="ios-container" id="ios-container">
+            <div class="platform-android"><label>Android Cleaner</label></div>
+            <input checked id="ios_node_modules" name="ios_node_modules" type="checkbox" value="ios_node_modules">
+            <label for="ios_node_modules">Node Modules</label><br>
+            <input checked id="ios_prepare" name="ios_prepare" type="checkbox" value="ios_prepare">
+            <label for="ios_prepare">Prepare</label><br>
+            <input id="ios_build" name="ios_build" type="checkbox" value="ios_build">
+            <label for="ios_build">Build</label><br>
+            <input id="ios_archive" name="ios_archive" type="checkbox" value="ios_archive">
+            <label for="ios_archive">Archive</label><br>
+            <br>
+            <button class="ios_cleaner_button" id="ios_cleaner_button">Start Cleaner</button>
+        </div>
+    </div>
+    <div class="internal_test">
+        <label>Deploy For Internal Test</label>
+        <br>
+        <div class="deploy_for_test">
+            <div class="workflows">
+                <label for="workflows">Workflows</label>
+                <div class="workflows-select-container">
+                    <select id="workflows" name="workflows">
+
+                    </select>
+                </div>
+            </div>
+            <div class="server">
+                <label for="server">Server</label>
+                <div class="server-select-container">
+                    <select id="server" name="server">
+                        <option value="dev">Development</option>
+                        <option selected value="stg">Staging</option>
+                        <option value="prod">Production</option>
+                    </select>
+                </div>
+            </div>
+            <div class="platform">
+                <label for="platform">Platform</label>
+                <div class="platform-select-container">
+                    <select id="platform" name="platform">
+                        <option value="android">Android</option>
+                        <option selected value="ios">Ios</option>
+                        <option value="both">Both</option>
+                    </select>
+                </div>
+            </div>
+            <div class="version_container">
+                <label for="android_version">Version</label><br>
+                <input id="android_version" name="version" type="text" value="1.7">
+            </div>
+            <div class="build_container">
+                <label for="build">Build Number</label><br>
+                <input id="build" name="version" type="number" value="13422">
+            </div>
+            <br>
+            <button class="start_deploy_button" id="start_deploy_button">Start Deploy</button>
+            <button class="advance_settings" id="advance_settings">Advance Settings</button>
+        </div>
+    </div>
+</div>
+<div class="error-container --hidden" id="error-container">
+    ERROR!!!
+</div>
+</body>
+<script
+    crossorigin="anonymous"
+    integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ="
+    src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+<script src="../../functions/lib.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="../../ui_control/projectDetail/renderer.js"></script>
+<script crossorigin="anonymous" src="https://kit.fontawesome.com/82221f9c85.js"></script>
+</html>

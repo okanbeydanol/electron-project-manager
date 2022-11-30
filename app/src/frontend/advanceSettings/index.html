@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Manager</title>
+    <meta
+        content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;"
+        http-equiv="Content-Security-Policy">
+    <link href="./styles.css" rel="stylesheet" type="text/css">
+    <link href="../../../assets/fonts/SFProDisplay-Regular.otf" rel="stylesheet">
+    <link href="../../../assets/fonts/SFProDisplay-Medium.otf" rel="stylesheet">
+</head>
+<body>
+<div class="loader-container" id="loader-container">
+    <div class="loader" id="loader"></div>
+</div>
+<div class="project-container --hidden" id="project-container">
+    <div class="fixes-container" id="fixes-container">
+        <div class="node_modules-fixes-container" id="node_modules-fixes-container">
+            <label class="package-json-title">Node Modules Fixes</label>
+            <button class="add-new-node_modules-fix" id="add-new-node_modules-fix">Add new node_modules fix</button>
+            <div class="fixes-node_modules" id="fixes-node_modules">
+
+            </div>
+        </div>
+        <div class="android-fixes-container" id="android-fixes-container">
+            <label class="package-json-title">Android Fixes</label>
+            <button class="add-new-android-fix" id="add-new-android-fix">Add new android fix</button>
+            <div class="fixes-android" id="fixes-android">
+
+            </div>
+        </div>
+        <div class="ios-fixes-container" id="ios-fixes-container">
+            <label class="package-json-title">Ios Fixes</label>
+            <button class="add-new-ios-fix" id="add-new-ios-fix">Add new ios fix</button>
+            <div class="fixes-ios" id="fixes-ios">
+
+            </div>
+        </div>
+    </div>
+    <div class="package-json-div">
+        <label class="package-json-title">Package Json Settings</label>
+        <!--
+                <button class="add-new-package-button" id="add-new-package-button">Add new package</button>
+        -->
+        <div class="package-json-container" id="package-json-container">
+            <div class="dependencies-container" id="dependencies-container">
+
+            </div>
+        </div>
+    </div>
+    <textarea id="test-textarea"></textarea>
+    <input id="command_input" name="command_input" placeholder="npm install fs" type="text">
+    <button class="add-new-package-button" id="add-new-package-button">Add new package</button>
+
+</div>
+<div class="error-container --hidden" id="error-container">
+    ERROR!!!
+</div>
+<div class="modal --hidden" id="modal">
+    <div class="modal_backdrop" id="modal_backdrop"></div>
+    <div class="modal_wrapper" id="modal_wrapper">
+        <div class="modal_content">
+            <div>Package Add</div>
+            <label for="package_name">Package Name</label><br>
+            <input id="package_name" name="package_name" placeholder="@ionic/native@4.20.0" type="text">
+            <button class="add-package" id="add-package">Add Package</button>
+        </div>
+    </div>
+</div>
+</body>
+<script src="../../functions/lib.js"></script>
+<script src="../../../assets/js/jquery.terminal.js"></script>
+<script src="../../ui_control/advanceSettings/renderer.js"></script>
+<script crossorigin="anonymous" src="https://kit.fontawesome.com/82221f9c85.js"></script>
+</html>

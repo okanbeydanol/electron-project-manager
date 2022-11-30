@@ -1,0 +1,86 @@
+@font-face {
+    font-family: SFProText-Regular;
+    src: url("../../../assets/fonts/SFProText-Regular.otf") format("opentype");
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'SFProText-Regular', serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #333;
+        color: white;
+        font-family: 'SFProText-Regular', serif;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    body {
+        background: #ddd;
+        color: black;
+        font-family: 'SFProText-Regular', serif;
+    }
+}
+
+.loader-container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader-container .loader {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid black;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 2s linear infinite;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.--hidden {
+    display: none !important;
+}
+
+.project-info {
+    margin: 18px;
+    display: block;
+}
+
+.android-container {
+    margin-left: 20px;
+}
+
+.fix-container {
+    display: flex;
+}
+
+.ios-container {
+    margin-left: 24px;
+}
+
+.internal_test {
+    margin-top: 20px;
+    margin-left: 20px;
+}
+
+.advance_settings {
+    float: right;
+    margin-right: 24px;
+}

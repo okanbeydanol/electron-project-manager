@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Manager</title>
+    <meta
+        content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;"
+        http-equiv="Content-Security-Policy">
+    <link href="./styles.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div class="container" id="container">
+    <label class="dark-mode-title">Dark Mode</label>
+    <label class="switch">
+
+        <input id="swap-btn" type="checkbox">
+        <span class="slider round"></span>
+    </label>
+    <input class="toggle" disabled id="toggle" type="checkbox">
+    <div class="container">
+        <div class="title-wrapper">
+            <label>Project</label>
+        </div>
+        <div class="project-container" id="project-container">
+            <div class="loader" id="loader"></div>
+            <ul class="--hidden" id="project">
+                <li>
+                    <a href="#" id="project-title">
+                        <label class="android-ios-title" id="android-ios-title">Skillcat1</label>
+                        <label class="android" id="android">Android: 1.7(13422)1</label>
+                        <label class="ios" id="ios">Ios: 1.7(13422)1</label>
+                    </a>
+                </li>
+            </ul>
+            <ul class="--hidden" id="project-add">
+                <li><a href="#" id="project-add-title"><i class="fas fa-plus"></i></a></li>
+            </ul>
+            <div class="options">
+                <div class="refresh-container --hidden" id="refresh-container">
+                    <i class="fas fa-rotate-right"></i>
+                </div>
+                <div class="trash-container --hidden" id="trash-container">
+                    <i class="fas fa-trash"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script src="../../ui_control/applicationStart/renderer.js"></script>
+<script crossorigin="anonymous" src="https://kit.fontawesome.com/82221f9c85.js"></script>
+</html>
