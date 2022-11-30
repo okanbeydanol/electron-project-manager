@@ -8,7 +8,7 @@ class BrewManager extends ChildProcess {
 
     async getBrewVersion() {
         return new Promise((resolve) => {
-            this.execCommand('brew -v', (event) => {
+            this.execCommand('brew -v ', (event) => {
                 if (event.error) {
                     return resolve({ error: true, data: null, message: 'Brew not install!' });
                 }
