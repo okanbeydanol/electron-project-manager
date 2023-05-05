@@ -1,18 +1,26 @@
-const loaderContainer = document.getElementById('loader-container');
-const projectContainer = document.getElementById('project-container');
-const abort = document.getElementById('abort');
-
+const commandInput = document.getElementById('command-input');
+const terminal = document.getElementById('terminal');
+const container = document.getElementById('container');
+const commandInputLabel = document.getElementById('command-input-label');
 
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(async () => {
-        /*        loaderContainer.classList.add('--hidden');
-                errorContainer.classList.remove('--hidden');*/
-        loaderContainer.classList.add('--hidden');
-
-        projectContainer.classList.remove('--hidden');
-        abort.addEventListener('click', () => {
-            window.projectDetail.abortTerminal();
+        window.terminalDetail.listenCommandNode((ev, value) => {
+            if (value.type === 'stderr' || value.type === 'stdout') {
+                const span = document.createElement('span');
+                span.setAttribute('style', 'display: block;')
+                span.innerHTML = value.data
+                terminal.insertAdjacentElement('beforeend', span);
+            } else if (!value.type) {
+                const span = document.createElement('span');
+                span.setAttribute('style', 'display: block;margin-top:16px;padding: 16px;color: #976262;')
+                span.innerHTML = value.data
+                terminal.insertAdjacentElement('beforeend', span);
+            } else if (value.type === 'folder_change') {
+                commandInputLabel.innerText = value.data;
+            }
         });
+
     }, 1000);
 });
 

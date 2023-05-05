@@ -1,4 +1,4 @@
-const { ChildProcess } = require('./child_process');
+const {ChildProcess} = require('./child_process');
 
 class IonicManager extends ChildProcess {
     constructor() {
@@ -9,18 +9,25 @@ class IonicManager extends ChildProcess {
         return new Promise((resolve) => {
             this.execCommand('ionic -v', (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Ionic is not installed on your computer!' });
+                    return resolve({
+                        error: true,
+                        data: null,
+                        message: 'Ionic is not installed on your computer!',
+                        window: event.window
+                    });
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
                         error: false,
-                        data: event.data.trim()
+                        data: event.data.trim(),
+                        window: event.window
                     });
                 }
                 if (event.type === 'stderr:end' && !event.error && event.data !== '') {
                     return resolve({
                         error: false,
-                        data: event.data.trim()
+                        data: event.data.trim(),
+                        window: event.window
                     });
                 }
             });
@@ -31,7 +38,7 @@ class IonicManager extends ChildProcess {
         return new Promise((resolve) => {
             this.execCommand('ionic info --json', (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Ionic not install!' });
+                    return resolve({error: true, data: null, message: 'Ionic not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -54,7 +61,7 @@ class IonicManager extends ChildProcess {
             const command = 'npm install -g @ionic/cli';
             await this.execCommand(command, (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Ionic can`t be install!' });
+                    return resolve({error: true, data: null, message: 'Ionic can`t be install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -75,4 +82,4 @@ class IonicManager extends ChildProcess {
 }
 
 
-module.exports = { IonicManager };
+module.exports = {IonicManager};

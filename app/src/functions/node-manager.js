@@ -1,5 +1,5 @@
-const { ChildProcess } = require('./child_process');
-const { BrewManager } = require('./brew-manager');
+const {ChildProcess} = require('./child_process');
+const {BrewManager} = require('./brew-manager');
 
 class NodeManager extends ChildProcess {
     BrewManager = new BrewManager();
@@ -8,11 +8,11 @@ class NodeManager extends ChildProcess {
         super();
     }
 
-    async getNodeVersion(refresh = false, nodeVersion = 'v14.17.0') {
+    async getNodeVersion() {
         return new Promise(async (resolve) => {
-            await this.execCommand(refresh ? await this.exportNvmDirPath() + '&&' + await this.setNodeVersionWithNvmText(nodeVersion) + '&&node -v' : 'node -v', (event) => {
+            await this.execCommand('node -v', (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Node not install!' });
+                    return resolve({error: true, data: null, message: 'Node not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -32,10 +32,10 @@ class NodeManager extends ChildProcess {
 
     async getNvmVersion() {
         return new Promise(async (resolve) => {
-            const command = await this.exportNvmDirPath() + '&&nvm -v';
+            const command = 'nvm -v';
             await this.execCommand(command, (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Nvm not install!' });
+                    return resolve({error: true, data: null, message: 'Nvm not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -70,7 +70,7 @@ class NodeManager extends ChildProcess {
 
             await this.execCommand('wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/' + nvmVersion + '/install.sh | bash', (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Nvm not install!' });
+                    return resolve({error: true, data: null, message: 'Nvm not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -103,9 +103,9 @@ class NodeManager extends ChildProcess {
                 }
             }
             this.BREW_VERSION = brewVersion.data;
-            await this.execCommand('brew install wget', (event) => {
+            await this.execCommand('eval "$(~/homebrew/bin/brew shellenv)"&&brew install wget', (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Wget cannot install!' });
+                    return resolve({error: true, data: null, message: 'Wget cannot install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -127,7 +127,7 @@ class NodeManager extends ChildProcess {
         return new Promise((resolve) => {
             this.execCommand('wget -V', (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Wget not install!' });
+                    return resolve({error: true, data: null, message: 'Wget not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -146,13 +146,12 @@ class NodeManager extends ChildProcess {
     }
 
 
-    async installNode(nodeVersion = '14.17.0') {
-        console.log('%c ANNENEEEEEEEE', 'background: #222; color: #bada55', nodeVersion);
+    async installNode(nodeVersion) {
         return new Promise(async (resolve) => {
-            const command = await this.exportNvmDirPath() + '&&' + await this.installNodeVersionWithNvmText(nodeVersion);
+            const command = await this.installNodeVersionWithNvmText(nodeVersion);
             await this.execCommand(command, (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Nvm not install!' });
+                    return resolve({error: true, data: null, message: 'Nvm not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -170,35 +169,12 @@ class NodeManager extends ChildProcess {
         });
     }
 
-    async removeNode(nodeVersion = '14.17.0', nodeVersion2 = '14.16.0') {
+    async removeNode(nodeVersion, nodeVersion2) {
         return new Promise(async (resolve) => {
-            const command = await this.exportNvmDirPath() + '&&' + await this.setNodeVersionWithNvmText(nodeVersion2) + '&&' + await this.removeNodeVersionWithNvmText(nodeVersion) + '&&' + await this.setNodeVersionWithNvmText(nodeVersion2);
+            const command = await this.setNodeVersionWithNvmText(nodeVersion2) + '&&' + await this.removeNodeVersionWithNvmText(nodeVersion) + '&&' + await this.setNodeVersionWithNvmText(nodeVersion2);
             await this.execCommand(command, (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Nvm not install!' });
-                }
-                if (event.type === 'stdout:end' && !event.error && event.data !== '') {
-                    return resolve({
-                        error: false,
-                        data: event.data.trim()
-                    });
-                }
-                if (event.type === 'stderr:end' && !event.error && event.data !== '') {
-                    return resolve({
-                        error: false,
-                        data: event.data.trim()
-                    });
-                }
-            });
-        });
-    }
-
-    async setNodeVersionWithNvm(nodeVersion = '14.17.0') {
-        return new Promise(async (resolve) => {
-            const command = await this.exportNvmDirPath() + '&&' + await this.setNodeVersionWithNvmText(nodeVersion);
-            await this.execCommand(command, (event) => {
-                if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Nvm not install!' });
+                    return resolve({error: true, data: null, message: 'Nvm not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -228,13 +204,6 @@ class NodeManager extends ChildProcess {
         });
     }
 
-    async exportNvmDirPath() {
-        return new Promise((resolve) => {
-            resolve(`export NVM_DIR="$HOME/.nvm"&&[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"`);
-        });
-    }
-
-
     async removeNodeVersionWithNvmText(node_version) {
         return new Promise((resolve) => {
             resolve('nvm uninstall ' + node_version);
@@ -249,4 +218,4 @@ class NodeManager extends ChildProcess {
 }
 
 
-module.exports = { NodeManager };
+module.exports = {NodeManager};

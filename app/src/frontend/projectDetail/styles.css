@@ -84,3 +84,7 @@
     float: right;
     margin-right: 24px;
 }
+
+.select2-results__option--selectable {
+    color: black !important;
+}

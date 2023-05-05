@@ -1,10 +1,81 @@
-const { exec } = require('child_process');
-const { BrowserWindow, app } = require('electron');
+const {exec, execSync} = require('child_process');
+const {BrowserWindow, app} = require('electron');
 const path = require('path');
-const { FsManager } = require('./fs-manager');
-const { dialog } = require('electron');
+const {FsManager} = require('./fs-manager');
+const {dialog} = require('electron');
+let terminalWindow;
 
 class ChildProcess {
+    colors = [
+        {
+            code: '[0m',
+            color: 'none',
+        },
+        {
+            code: '[0;30m',
+            color: '#000000',
+        },
+        {
+            code: '[0;31m',
+            color: '#FF0000',
+        },
+        {
+            code: '[1;30m',
+            color: '#808080',
+        },
+        {
+            code: '[1;31m',
+            color: '#FFCCCB',
+        },
+        {
+            code: '[0;32m',
+            color: '#008000',
+        },
+        {
+            code: '[1;32m',
+            color: '#90EE90',
+        },
+        {
+            code: '[0;33m',
+            color: '#A52A2A',
+        },
+        {
+            code: '[1;33m',
+            color: '#FFFF00',
+        },
+        {
+            code: '[0;34m',
+            color: '#0000FF',
+        },
+        {
+            code: '[1;34m',
+            color: '#ADD8E6',
+        },
+        {
+            code: '[0;35m',
+            color: '#800080',
+        },
+        {
+            code: '[1;35m',
+            color: '#8467D7',
+        },
+        {
+            code: '[0;36m',
+            color: '#00FFFF',
+        },
+        {
+            code: '[1;36m',
+            color: '#E0FFFF',
+        },
+        {
+            code: '[0;37m',
+            color: '#D3D3D3',
+        },
+        {
+            code: '[1;37m',
+            color: '#FFFFFF',
+        }
+    ]
 
     config_path = path.join(__dirname, '../config');
     childProcessExec;
@@ -12,7 +83,6 @@ class ChildProcess {
     stdoutOn = null;
     stderrOn = null;
     execClose = null;
-    terminalWindow;
     fsManager = new FsManager();
     config = null;
 
@@ -29,15 +99,6 @@ class ChildProcess {
     constructor() {
     }
 
-
-    async abort() {
-        return new Promise((resolve) => {
-            this.controller.abort();
-            this.controller = null;
-            return true;
-        });
-    }
-
     async startWindow() {
         const settings = await this.fsManager.readFile(this.config_path + '/settings.json', {
             encoding: 'utf8',
@@ -46,7 +107,7 @@ class ChildProcess {
         });
         this.config = JSON.parse(settings.data);
         if (!this.config.terminal) {
-            this.terminalWindow = new BrowserWindow({
+            terminalWindow = new BrowserWindow({
                 width: 500,
                 height: 500,
                 webPreferences: {
@@ -60,26 +121,26 @@ class ChildProcess {
                     preload: path.resolve(app.getAppPath(), 'app/src/preload/preload.js')
                 }
             });
-            this.terminalWindow.loadFile(path.resolve(app.getAppPath(), 'app/src/frontend/terminal/index.html')).then(async (r) => {
-                this.terminalWindow.webContents.openDevTools({ mode: 'detach', activate: true });
+            terminalWindow.loadFile(path.resolve(app.getAppPath(), 'app/src/frontend/terminal/index.html')).then(async (r) => {
+                terminalWindow.webContents.openDevTools({mode: 'detach', activate: true});
                 this.config.terminal = true;
-                this.config.terminalId = this.terminalWindow.id;
+                this.config.terminalId = terminalWindow.id;
                 await this.fsManager.writeFile(this.config_path + '/settings.json', JSON.stringify(this.config));
-                this.terminalWindow.on('close', async () => {
+                terminalWindow.on('close', async () => {
                     this.config.terminal = false;
                     await this.fsManager.writeFile(this.config_path + '/settings.json', JSON.stringify(this.config));
                 });
 
-                this.terminalWindow.on('unresponsive', async () => {
-                    const { response } = await dialog.showMessageBox({
+                terminalWindow.on('unresponsive', async () => {
+                    const {response} = await dialog.showMessageBox({
                         message: 'App has become unresponsive',
                         title: 'Do you want to try forcefully reloading the app?',
-                        buttons: ['OK', 'Cancel'],
+                        buttons: [ 'OK', 'Cancel' ],
                         cancelId: 1
                     });
                     if (response === 0) {
-                        this.terminalWindow.forcefullyCrashRenderer();
-                        this.terminalWindow.reload();
+                        terminalWindow.forcefullyCrashRenderer();
+                        terminalWindow.reload();
                         this.config.terminal = false;
                         await this.fsManager.writeFile(this.config_path + '/settings.json', JSON.stringify(this.config));
                     }
@@ -91,7 +152,6 @@ class ChildProcess {
             const browser = BrowserWindow.getAllWindows().findIndex((o) => o.id === this.config.terminalId);
             if (browser !== -1) {
                 const openedBrowser = BrowserWindow.fromId(BrowserWindow.getAllWindows()[browser].id);
-
             } else {
                 this.config.terminal = false;
                 await this.fsManager.writeFile(this.config_path + '/settings.json', JSON.stringify(this.config));
@@ -114,15 +174,15 @@ class ChildProcess {
     }) {
         return new Promise(async (resolve) => {
             await this.startWindow();
+            await this.checkCommand(command);
             this.controller = new AbortController();
-            console.log('%c command: ', 'background: #222; color: #bada55', command);
-
-            global.abortController = this.controller;
-            const { signal } = this.controller;
+            const exportData = await this.exportsD();
+            const {signal} = this.controller;
             options.signal = options.signal ? options.signal : signal;
+            console.log('%c exportData.data + command', 'background: #222; color: #bada55', exportData.data + '&&' + command);
             this.childProcessExec = exec
             (
-                command,
+                'unset npm_config_prefix&&' + exportData.data + '&&' + command,
                 options
                 , async (error, stdout, stderr) => {
                     if (error) {
@@ -131,7 +191,8 @@ class ChildProcess {
                             error: true,
                             type: 'error:end',
                             message: error.message,
-                            road: 'child_process.js:execCommand:exec'
+                            road: 'child_process.js:execCommand:exec',
+                            window: terminalWindow
                         });
                         return resolve(false);
                     }
@@ -140,13 +201,15 @@ class ChildProcess {
                         data: stderr,
                         error: false,
                         type: 'stdout:end',
-                        road: 'child_process.js:execCommand:exec'
+                        road: 'child_process.js:execCommand:exec',
+                        window: terminalWindow
                     });
                     callback({
                         data: stdout,
                         error: false,
                         type: 'stderr:end',
-                        road: 'child_process.js:execCommand:exec'
+                        road: 'child_process.js:execCommand:exec',
+                        window: terminalWindow
                     });
                     return resolve(true);
                 });
@@ -157,13 +220,18 @@ class ChildProcess {
                 await this.childProcessExec.stdout.removeListener('data');
                 this.stdoutOn = null;
             }
-            this.stdoutOn = this.childProcessExec.stdout.on('data', data => {
-                console.log('%c data', 'background: #222; color: #bada55', data);
-
-                callback({
-                    data: data,
+            this.stdoutOn = this.childProcessExec.stdout.on('data', async (data) => {
+                const dat = await this.coloredTerminal(data);
+                terminalWindow.webContents.send('command:listen', {
+                    data: dat.join('\n').trimStart(),
                     error: false,
-                    type: 'stdout'
+                    type: 'stdout',
+                });
+                callback({
+                    data: dat.join('\n').trimStart(),
+                    error: false,
+                    type: 'stdout',
+                    window: terminalWindow
                 });
             });
 
@@ -171,13 +239,20 @@ class ChildProcess {
                 await this.childProcessExec.stderr.removeListener('data');
                 this.stderrOn = null;
             }
-            this.stderrOn = this.childProcessExec.stderr.on('data', data => {
-                console.log('%c data', 'background: #222; color: #bada55', data);
-                callback({
-                    data: data,
+            this.stderrOn = this.childProcessExec.stderr.on('data', async (data) => {
+                const dat = await this.coloredTerminal(data);
+                terminalWindow.webContents.send('command:listen', {
+                    data: dat.join('\n').trimStart(),
                     error: false,
-                    type: 'stderr'
+                    type: 'stderr',
                 });
+                callback({
+                    data: dat.join('\n').trimStart(),
+                    error: false,
+                    type: 'stderr',
+                    window: terminalWindow
+                });
+
             });
 
             if (this.execClose !== null) {
@@ -198,86 +273,123 @@ class ChildProcess {
         });
     }
 
-    /*    async init(command, options = {
-        stdout: 'inherit',
-        encoding: 'utf8',
-        signal: null,
-        timeout: 0,
-        maxBuffer: 200 * 1024, //increase here
-        killSignal: 'SIGTERM',
-        cwd: null,
-        env: null
-    }) {
+    async coloredTerminal(data) {
         return new Promise((resolve) => {
-            this.controller = new AbortController();
-            const { signal } = this.controller;
-            options.signal = options.signal ? options.signal : signal;
-            this.childProcess = exec
-            (
-                command,
-                options
-                , (error, stdout, stderr) => {
-                    if (error) {
-                        console.log(`${ error.name }: ${ error.message }`);
-                        console.log(`[STACK] ${ error.stack }`);
-                        this.advanceSettingsWindow.webContents.send('projectDetail:addPackageResponse', {
-                            data: false,
-                            error: true,
-                            message: error.message,
-                            road: 'main.js:projectDetail:addPackage:exec'
-                        });
-                        return resolve(false);
-
+            const split = data.trimStart().split('\n');
+            const dat = [];
+            split.map((s) => {
+                const regexFind = /(\/*\[[0-1];[0-9][0-9]m\/*)/g.exec(s.trimStart());
+                if (regexFind) {
+                    const find = this.colors.find(o => o.code === regexFind[0]);
+                    if (find) {
+                        dat.push('<label id="color-label" style="color:' + find.color + '">' + s.replace(/(\/*\[[0-1];[0-9][0-9]m\/*)/g, '').replace(/(\/*\[[0-1]m\/*)/g, '').trimStart() + '</label>');
+                    } else {
+                        dat.push('<label id="color-label" style="color:#a39f9f">' + s.replace(/(\/*\[[0-1];[0-9][0-9]m\/*)/g, '').replace(/(\/*\[[0-1]m\/*)/g, '').trimStart() + '</label>');
                     }
-
-
-                    this.advanceSettingsWindow.webContents.send('projectDetail:addPackageResponse', {
-                        data: stderr,
-                        error: false,
-                        type: 'stdout:finish'
-                    });
-                    this.advanceSettingsWindow.webContents.send('projectDetail:addPackageResponse', {
-                        data: stdout,
-                        error: false,
-                        type: 'stderr:finish'
-                    });
-                    return resolve(true);
-                });
-            this.childProcess.stdout.setEncoding('utf8');
-            this.childProcess.stderr.setEncoding('utf8');
-            this.childProcess.stdout.on('data', data => {
-                this.advanceSettingsWindow.webContents.send('projectDetail:addPackageResponse', {
-                    data: data,
-                    error: false,
-                    type: 'stdout'
-                });
+                } else {
+                    dat.push('<label id="color-label-no-color" style="color:#a39f9f">' + s.trimStart() + '</label>');
+                }
             });
-            this.childProcess.stderr.on('data', data => {
-                this.advanceSettingsWindow.webContents.send('projectDetail:addPackageResponse', {
-                    data: data,
-                    error: false,
-                    type: 'stderr'
-                });
-            });
-            this.childProcess.on('error', error => {
-                this.advanceSettingsWindow.webContents.send('projectDetail:addPackageResponse', {
-                    data: false,
-                    error: true,
-                    message: error.message,
-                    road: 'main.js:projectDetail:addPackage:childProcess'
-                });
-            });
-            this.childProcess.on('close', exitCode => {
-                this.advanceSettingsWindow.webContents.send('projectDetail:addPackageResponse', {
-                    data: false,
-                    error: false,
-                    type: 'close'
-                });
-            });
-
+            return resolve(dat);
         });
-    }*/
+    }
+
+    async checkCommand(command) {
+        return new Promise(async (resolve) => {
+            const cdRegex = /((cd +~[^&]+))|((cd +~))|((cd +.[(\/\w+)]+))|((cd +[.][.][(\/\w+)]+))|((cd [(\/\w+)]+))|((cd [(\/\w+)]+))|((cd +[.][.]))/g;
+            let m;
+            const paths = [];
+            while ((m = cdRegex.exec(command.trimStart())) !== null) {
+                if (m.index === cdRegex.lastIndex) {
+                    cdRegex.lastIndex++;
+                }
+                m.forEach((match, groupIndex) => {
+                    if (match && !paths.find(o => o === match)) {
+                        paths.push(match)
+                    }
+                });
+            }
+            if (paths.length > 0) {
+                for await (let path of paths) {
+                    let replace = path.trim().replace('cd ', '').trim();
+                    if (replace[replace.length - 1] === '/') {
+                        replace = replace.slice(0, replace.length - 2);
+                    }
+                    const split = replace.split('/');
+                    await split.reduce((lastPromise, s, currentIndex, array) => {
+                        return lastPromise.then(async () => {
+                            if (s === '') {
+                                this.config.currentPath = split.join('/');
+                                await new FsManager().writeFile(this.config_path + '/settings.json', JSON.stringify(this.config));
+                            } else if (s === '..') {
+                                this.config.currentPath = '/' + this.config.currentPath.split('/').slice(1, this.config.currentPath.split('/').length - 1).join('/');
+                                await new FsManager().writeFile(this.config_path + '/settings.json', JSON.stringify(this.config));
+                            } else if (s === '~') {
+                                const checkH = await this.checkHome();
+                                this.config.currentPath = checkH.data;
+                                await new FsManager().writeFile(this.config_path + '/settings.json', JSON.stringify(this.config));
+                            } else {
+                                const currentDir = await new FsManager().readDir(this.config.currentPath)
+                                const findIndex = currentDir.data.findIndex((o) => o.name.trim() === s.trim());
+                                if (findIndex !== -1 && currentDir.data[findIndex].isDirectory) {
+                                    this.config.currentPath = this.config.currentPath + '/' + s;
+                                    await new FsManager().writeFile(this.config_path + '/settings.json', JSON.stringify(this.config));
+                                }
+                            }
+                            return this.config.currentPath;
+                        })
+                    }, Promise.resolve()).finally(async () => {
+                        terminalWindow.webContents.send('command:listen', {
+                            error: false,
+                            data: this.config.currentPath,
+                            type: 'folder_change'
+                        });
+                    });
+                }
+            } else {
+                return resolve({error: false, data: 'cd ' + this.config.currentPath + '&&' + command})
+            }
+        });
+    }
+
+    async checkHome() {
+        return new Promise((resolve) => {
+            const home = execSync('echo ~', {encoding: 'utf8'});
+            if (home === '') {
+                return resolve({
+                    data: home,
+                    error: true,
+                    type: 'stdout:end',
+                    road: 'child_process.js:execCommand:exec'
+                });
+            }
+            return resolve({
+                data: home,
+                error: false,
+                type: 'stdout:end',
+                road: 'child_process.js:execCommand:exec'
+            });
+        });
+    }
+
+    exportsD() {
+        return new Promise(async (resolve) => {
+            resolve({
+                error: false,
+                data: 'export NVM_DIR="$HOME/.nvm"&&[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"&&[ -s "$NVM_DIR/bash_completion" ] && \\. "$NVM_DIR/bash_completion"'
+            });
+        });
+    }
+
+    async abort() {
+        return new Promise((resolve) => {
+            this.controller.abort();
+            this.controller = null;
+            return true;
+        });
+    }
+
 }
 
 
-module.exports = { ChildProcess };
+module.exports = {ChildProcess};

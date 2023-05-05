@@ -1,19 +1,17 @@
 'use strict';
-const { CordovaManager } = require('../../functions/cordova-manager');
-const { app, BrowserWindow, ipcMain, nativeTheme, ipcRenderer } = require('electron');
+const {app, BrowserWindow, ipcMain, nativeTheme, ipcRenderer} = require('electron');
 const path = require('path');
-const { dialog } = require('electron');
-const { writeFileSync } = require('fs');
+const {dialog} = require('electron');
+const {writeFileSync} = require('fs');
 const request = require('request');
-const { homedir } = require('os');
-const { join } = require('path');
-const { ChildProcess } = require('../../functions/child_process');
-const { FsManager } = require('../../functions/fs-manager');
-const { PackageJsonManager } = require('../../functions/package_json_control');
-const { AndroidCleaner } = require('../../functions/android-cleaner');
+const {homedir} = require('os');
+const {join} = require('path');
+const {FsManager} = require('../../functions/fs-manager');
+const {PackageJsonManager} = require('../../functions/package_json_control');
+const {AndroidCleaner} = require('../../functions/android-cleaner');
+const {execSync, exec} = require("child_process");
 const config_path = path.join(__dirname, '../../config');
 (async () => {
-
     const config = await new FsManager().readFile(config_path + '/settings.json', {
         encoding: 'utf8',
         flag: 'r',
@@ -49,7 +47,7 @@ const config_path = path.join(__dirname, '../../config');
     const build_ios = config['build-ios'];
     const desktop_dir = join(homedir(), build_android.output.direction);
     const folders = config.folders;
-    const types = { remove: 0, add: 1, replace: 2 };
+    const types = {remove: 0, add: 1, replace: 2};
     const env = process.env.NODE_ENV || 'development';
     let mainWindow = null;
     let projectDetailWindow = null;
@@ -60,6 +58,7 @@ const config_path = path.join(__dirname, '../../config');
     let ios_version = null;
     let android_build_number = null;
     let ios_build_number = null;
+
     const createWindow = async () => {
         mainWindow = new BrowserWindow({
             width: 300,
@@ -77,7 +76,7 @@ const config_path = path.join(__dirname, '../../config');
         });
         // Open the DevTools.
         await mainWindow.loadFile(path.resolve(app.getAppPath(), 'app/src/frontend/applicationStart/index.html'));
-        mainWindow.webContents.openDevTools({ mode: 'detach', activate: true });
+        mainWindow.webContents.openDevTools({mode: 'detach', activate: true});
     };
 
     const startHandle = async () => {
@@ -101,16 +100,16 @@ const config_path = path.join(__dirname, '../../config');
         });
 
         ipcMain.handle('folder-process:add', async (ev) => {
-            return await dialog.showOpenDialog({ properties: ['openDirectory'] }).then(async (event) => {
+            return await dialog.showOpenDialog({properties: [ 'openDirectory' ]}).then(async (event) => {
                 if (!event.canceled) {
                     config.project_path = event.filePaths[0];
                     const write = await new FsManager().writeFile(config_path + '/settings.json', JSON.stringify(config));
                     if (write.error) {
-                        return { error: true, road: 'ApplicationStart/main.js:add:writeFile' };
+                        return {error: true, road: 'ApplicationStart/main.js:add:writeFile'};
                     }
                     return await readConfigXml();
                 }
-                return { error: true, road: 'ApplicationStart/main.js:add:showOpenDialog' };
+                return {error: true, road: 'ApplicationStart/main.js:add:showOpenDialog'};
             });
         });
 
@@ -123,7 +122,7 @@ const config_path = path.join(__dirname, '../../config');
         ipcMain.handle('project:detail', async (ev) => {
             projectDetailWindow = new BrowserWindow({
                 width: 440,
-                height: 520,
+                height: 530,
                 webPreferences: {
                     devTools: true,
                     disableHtmlFullscreenWindowResize: true,
@@ -136,7 +135,7 @@ const config_path = path.join(__dirname, '../../config');
             });
             // Open the DevTools.
             await projectDetailWindow.loadFile(path.resolve(app.getAppPath(), 'app/src/frontend/projectDetail/index.html'));
-            projectDetailWindow.webContents.openDevTools({ mode: 'detach', activate: true });
+            projectDetailWindow.webContents.openDevTools({mode: 'detach', activate: true});
             mainWindow.minimize();
             return true;
         });
@@ -152,6 +151,7 @@ const config_path = path.join(__dirname, '../../config');
                 };
             }
             const userInfo = await get_user_info(access_token);
+
             if (userInfo.error) {
                 return userInfo;
             }
@@ -166,12 +166,10 @@ const config_path = path.join(__dirname, '../../config');
             if (branches.error) {
                 return branches;
             }
-
             const workflows = await get_workflows(owner, repo, access_token);
             if (workflows.error) {
                 return workflows;
             }
-
             return {
                 data: {
                     userInfo: userInfo.data,
@@ -202,7 +200,7 @@ const config_path = path.join(__dirname, '../../config');
             });
             // Open the DevTools.
             await advanceSettingsWindow.loadFile(path.resolve(app.getAppPath(), 'app/src/frontend/advanceSettings/index.html'));
-            advanceSettingsWindow.webContents.openDevTools({ mode: 'detach', activate: true });
+            advanceSettingsWindow.webContents.openDevTools({mode: 'detach', activate: true});
 
             return true;
         });
@@ -219,19 +217,15 @@ const config_path = path.join(__dirname, '../../config');
                 error: false
             };
         });
+        ipcMain.handle('projectDetail:startAndroidCleaner', async (_event, value) => {
+            const androidCleaner = await new AndroidCleaner().startAndroidCleaner();
+            console.log('%c androidCleaner', 'background: #222; color: #bada55', androidCleaner);
+        });
+
         let child = null;
 
         ipcMain.handle('projectDetail:addPackage', async (_event, value) => {
-            child = await new AndroidCleaner();
-            const cleanNode = await child.cleanNode();
-            console.log('%c cleanNode', 'background: #222; color: #bada55', cleanNode);
 
-
-            return await child.startAndroidCleaner();
-
-            /*
-                        return await child.init(value);
-            */
         });
 
         ipcMain.handle('projectDetail:stopProcess', async (_event, value) => {
@@ -244,10 +238,7 @@ const config_path = path.join(__dirname, '../../config');
 
 
         ipcMain.handle('projectDetail:abortTerminal', async (_event, value) => {
-            /* const app = require('electron').remote.app;
-             let id = app.getGlobal('abortController');*/
-            /*            const test = require('electron').remote.getGlobal('abortController');
-                        console.log('%c test', 'background: #222; color: #bada55', test);*/
+
             return true;
         });
 
@@ -303,7 +294,7 @@ const config_path = path.join(__dirname, '../../config');
                         i = -1;
                     }
                 }
-                return resolve({ data: branchesCounter, error: false });
+                return resolve({data: branchesCounter, error: false});
             }
         );
     };
@@ -327,7 +318,7 @@ const config_path = path.join(__dirname, '../../config');
                         message: error.message,
                         road: 'ApplicationStart/main.js:fetch_branch:request'
                     });
-                    return resolve({ data: JSON.parse(response.body), error: false });
+                    return resolve({data: JSON.parse(response.body), error: false});
                 });
 
             }
@@ -356,7 +347,7 @@ const config_path = path.join(__dirname, '../../config');
                     return resolve(gitConfigFile);
                 }
                 return resolve({
-                    data: { currentBranch: currentBranch, githubProjectUrl: github_project_url },
+                    data: {currentBranch: currentBranch, githubProjectUrl: github_project_url},
                     error: false
                 });
             }
@@ -382,11 +373,26 @@ const config_path = path.join(__dirname, '../../config');
                         message: error.message,
                         road: 'ApplicationStart/main.js:get_user_info:request'
                     });
-                    return resolve({ data: JSON.parse(response.body), error: false });
+                    return resolve({data: JSON.parse(response.body), error: false});
                 });
             }
         );
     };
+
+
+    async function getCurrentPath() {
+        return new Promise((resolve) => {
+            exec('pwd', {encoding: 'utf8'}, (error, stdout, stderr) => {
+                return resolve({
+                    data: stdout.trim(),
+                    error: false,
+                    type: 'stdout:end',
+                    road: 'child_process.js:execCommand:exec'
+                });
+            });
+        });
+    }
+
 
     const readConfigXml = async () => {
         const configExist = await new FsManager().pathExist(config.project_path + '/config.xml');

@@ -1,4 +1,4 @@
-const { ChildProcess } = require('./child_process');
+const {ChildProcess} = require('./child_process');
 
 class GradleManager extends ChildProcess {
     constructor() {
@@ -9,7 +9,7 @@ class GradleManager extends ChildProcess {
         return new Promise((resolve) => {
             this.execCommand('gradle -v', (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Java not install!' });
+                    return resolve({error: true, data: null, message: 'Gradle not install!'});
                 }
 
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
@@ -30,10 +30,10 @@ class GradleManager extends ChildProcess {
 
     async installGradle() {
         return new Promise(async (resolve) => {
-            const command = 'brew install gradle';
+            const command = 'eval "$(~/homebrew/bin/brew shellenv)"&&brew install gradle';
             await this.execCommand(command, (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Gradle not install!' });
+                    return resolve({error: true, data: null, message: 'Gradle not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -53,4 +53,4 @@ class GradleManager extends ChildProcess {
 }
 
 
-module.exports = { GradleManager };
+module.exports = {GradleManager};

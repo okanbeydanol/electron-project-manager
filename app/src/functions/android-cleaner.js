@@ -1,10 +1,10 @@
-const { ChildProcess } = require('./child_process');
-const { IonicManager } = require('./ionic-manager');
-const { CordovaManager } = require('./cordova-manager');
-const { BrewManager } = require('./brew-manager');
-const { GradleManager } = require('./gradle-manager');
-const { NodeManager } = require('./node-manager');
-const { JavaManager } = require('./java-manager');
+const {ChildProcess} = require('./child_process');
+const {IonicManager} = require('./ionic-manager');
+const {CordovaManager} = require('./cordova-manager');
+const {BrewManager} = require('./brew-manager');
+const {GradleManager} = require('./gradle-manager');
+const {NodeManager} = require('./node-manager');
+const {JavaManager} = require('./java-manager');
 
 class AndroidCleaner extends ChildProcess {
     ionicCli = new IonicManager();
@@ -20,6 +20,7 @@ class AndroidCleaner extends ChildProcess {
 
     async startAndroidCleaner() {
         return new Promise(async (resolve) => {
+            let cleanNode = await this.cleanNode();
             const environmentCheck = await this.environmentCheck();
             if (environmentCheck.error) {
                 return resolve(environmentCheck);
@@ -31,26 +32,34 @@ class AndroidCleaner extends ChildProcess {
 
     async cleanNode() {
         return new Promise(async (resolve) => {
-            let nodeVersion = await this.NodeManager.getNodeVersion(false);
+            let nodeVersion = await this.NodeManager.getNodeVersion();
+            console.log('%c nodeVersion', 'background: #222; color: #bada55', nodeVersion);
             let change_node_version = nodeVersion.data.split('.')[0] + '.' + nodeVersion.data.split('.')[1] + '.' + (+nodeVersion.data.split('.')[nodeVersion.data.split('.').length - 1] === 1 ? 0 : 1).toString();
             console.log('%c change_node_version', 'background: #222; color: #bada55', change_node_version);
             const installNodeWithNvm = await this.tryInstallNodeWithNvm(change_node_version);
+            console.log('%c installNodeWithNvm', 'background: #222; color: #bada55', installNodeWithNvm);
+
             if (installNodeWithNvm.error) {
                 return resolve(installNodeWithNvm);
             }
             console.log('%c installNodeWithNvm', 'background: #222; color: #bada55', installNodeWithNvm);
             let change_node_version2 = change_node_version.split('.')[0] + '.' + change_node_version.split('.')[1] + '.' + (+change_node_version.split('.')[change_node_version.split('.').length - 1] === 1 ? 0 : 1).toString();
             console.log('%c change_node_version2', 'background: #222; color: #bada55', change_node_version);
-            /*         const removeNodeWithNvm = await this.removeNodeWithNvm(change_node_version2, change_node_version);
-                     if (removeNodeWithNvm.error) {
-                         return resolve(removeNodeWithNvm);
-                     }*/
-            nodeVersion = await this.NodeManager.getNodeVersion(false);
+            const removeNodeWithNvm = await this.removeNodeWithNvm(change_node_version2, change_node_version);
+            console.log('%c removeNodeWithNvm', 'background: #222; color: #bada55', removeNodeWithNvm);
+
+            if (removeNodeWithNvm.error) {
+                return resolve(removeNodeWithNvm);
+            }
+            nodeVersion = await this.NodeManager.getNodeVersion();
+            console.log('%c nodeVersion', 'background: #222; color: #bada55', nodeVersion);
+
             if (nodeVersion.error) {
                 return resolve(nodeVersion);
             }
             this.NODE_VERSION = nodeVersion.data;
-            return resolve({ error: false, data: nodeVersion });
+            console.log("NODE VERSION: ", this.NODE_VERSION);
+            return resolve({error: false, data: nodeVersion});
         });
     }
 
@@ -70,39 +79,91 @@ class AndroidCleaner extends ChildProcess {
             }
             this.IONIC_VERSION = ionicVersion.data;
             console.log('%c IONIC_VERSION', 'background: #222; color: #bada55', this.IONIC_VERSION);
+            ionicVersion.window.webContents.send('command:listen', {
+                data: 'IONIC is installed! Version: ' + ionicVersion.data,
+                error: false
+            });
+            /*
 
+                        ionicVersion.window.webContents.send('command:listen', {
+                            data: 'Cordova  is installing!',
+                            error: false
+                        });
+                        // Cordova Version
+                        let cordovaError = null;
+                        let fixed = null;
+                        let cordovaVersion = await this.CordovaManager.getCordovaVersion();
 
-            // Cordova Version
-            let cordovaVersion = await this.CordovaManager.getCordovaVersion();
-            if (cordovaVersion.error) {
-                const installCordova = await this.tryInstallCordova();
-                if (installCordova.error) {
-                    return resolve(installCordova);
-                }
-                cordovaVersion = await this.CordovaManager.getCordovaVersion();
-                console.log('%c cordovaVersion22222', 'background: #222; color: #bada55', cordovaVersion);
-                if (cordovaVersion.error) {
-                    return resolve(cordovaVersion);
-                }
-            }
-            this.CORDOVA_VERSION = cordovaVersion.data;
-            console.log('%c CORDOVA_VERSION', 'background: #222; color: #bada55', this.CORDOVA_VERSION);
+                        if (cordovaVersion.error) {
+                            if (cordovaVersion.message === 'nameMap ERROR') {
+                                cordovaError = 'nameMap';
+                                fixed = await this.fixMacOsReleaseName(true);
+                                if (fixed.error) {
+                                    return resolve(fixed);
+                                }
+                            } else {
+                                cordovaError = 'notFound';
+                                const installCordova = await this.tryInstallCordova();
+                                if (installCordova.error) {
+                                    return resolve(installCordova);
+                                }
+                            }
 
-            // Cordova Resources Version
-            let cordovaResourcesVersion = await this.CordovaManager.getCordovaResVersion();
-            if (cordovaResourcesVersion.error) {
-                const installCordovaResources = await this.tryInstallCordovaResources();
-                if (installCordovaResources.error) {
-                    return resolve(installCordovaResources);
-                }
-                cordovaResourcesVersion = await this.CordovaManager.getCordovaResVersion();
-                if (cordovaResourcesVersion.error) {
-                    return resolve(cordovaResourcesVersion);
-                }
-            }
-            this.CORDOVA_RES_VERSION = cordovaResourcesVersion.data;
-            console.log('%c CORDOVA_RES_VERSION', 'background: #222; color: #bada55', this.CORDOVA_RES_VERSION);
+                            if (cordovaError === 'nameMap') {
+                                cordovaVersion = fixed;
+                            } else {
+                                cordovaVersion = await this.CordovaManager.getCordovaVersion();
+                                if (cordovaVersion.error) {
+                                    if (cordovaVersion.message === 'nameMap ERROR') {
+                                        fixed = await this.CordovaManager.fixMacOsReleaseName(true);
+                                        if (fixed.error) {
+                                            return resolve(fixed);
+                                        }
+                                        cordovaVersion = fixed;
+                                    } else {
+                                        return resolve(cordovaVersion);
+                                    }
+                                }
+                            }
+                        }
+                        this.CORDOVA_VERSION = cordovaVersion.data;
+                        console.log('%c CORDOVA_VERSION', 'background: #222; color: #bada55', this.CORDOVA_VERSION);
+                        ionicVersion.window.webContents.send('command:listen', {
+                            data: 'Cordova is installed! Version: ' + cordovaVersion.data,
+                            error: false
+                        });
+                        ionicVersion.window.webContents.send('command:listen', {
+                            data: 'Cordova Resources is installing!',
+                            error: false
+                        });
+                        // Cordova Resources Version
+                        let cordovaResourcesVersion = await this.CordovaManager.getCordovaResVersion();
+                        console.log('%c cordovaResourcesVersion', 'background: #222; color: #bada55', cordovaResourcesVersion);
 
+                        if (cordovaResourcesVersion.error) {
+                            const installCordovaResources = await this.tryInstallCordovaResources();
+                            console.log('%c installCordovaResources', 'background: #222; color: #bada55', installCordovaResources);
+
+                            if (installCordovaResources.error) {
+                                return resolve(installCordovaResources);
+                            }
+                            cordovaResourcesVersion = await this.CordovaManager.getCordovaResVersion();
+                            console.log('%c cordovaResourcesVersion', 'background: #222; color: #bada55', cordovaResourcesVersion);
+
+                            if (cordovaResourcesVersion.error) {
+                                return resolve(cordovaResourcesVersion);
+                            }
+                        }
+                        this.CORDOVA_RES_VERSION = cordovaResourcesVersion.data;
+                        console.log('%c CORDOVA_RES_VERSION', 'background: #222; color: #bada55', this.CORDOVA_RES_VERSION);
+                        ionicVersion.window.webContents.send('command:listen', {
+                            data: 'Cordova Resources is installed! Version: ' + cordovaResourcesVersion.data,
+                            error: false
+                        });
+                        ionicVersion.window.webContents.send('command:listen', {
+                            data: 'Brew  is installing!',
+                            error: false
+                        });*/
             // Brew Version
             let brewVersion = await this.BrewManager.getBrewVersion();
             if (brewVersion.error) {
@@ -117,11 +178,21 @@ class AndroidCleaner extends ChildProcess {
             }
             this.BREW_VERSION = brewVersion.data;
             console.log('%c BREW_VERSION', 'background: #222; color: #bada55', this.BREW_VERSION);
-
+            ionicVersion.window.webContents.send('command:listen', {
+                data: 'Brew is installed! Version: ' + brewVersion.data,
+                error: false
+            });
+            ionicVersion.window.webContents.send('command:listen', {
+                data: 'Gradle  is installing!',
+                error: false
+            });
             // Gradle Version
             let gradleVersion = await this.GradleManager.getGradleVersion();
+            console.log('%c gradleVersion', 'background: #222; color: #bada55', gradleVersion);
             if (gradleVersion.error) {
                 const installGradleWithBrew = await this.tryInstallGradleWithBrew();
+                console.log('%c installGradleWithBrew', 'background: #222; color: #bada55', installGradleWithBrew);
+
                 if (installGradleWithBrew.error) {
                     if (!installGradleWithBrew.message.includes('Brew')) {
                         return resolve(installGradleWithBrew);
@@ -129,30 +200,47 @@ class AndroidCleaner extends ChildProcess {
                 }
 
                 gradleVersion = await this.GradleManager.getGradleVersion();
+                console.log('%c gradleVersion', 'background: #222; color: #bada55', gradleVersion);
+
                 if (gradleVersion.error) {
                     return resolve(gradleVersion);
                 }
             }
+            console.log('%c gradleVersion', 'background: #222; color: #bada55', gradleVersion);
+
             this.GRADLE_VERSION = gradleVersion.data;
             console.log('%c GRADLE_VERSION', 'background: #222; color: #bada55', this.GRADLE_VERSION);
-
+            ionicVersion.window.webContents.send('command:listen', {
+                data: 'Gradle is installed! Version: ' + gradleVersion.data,
+                error: false
+            });
+            ionicVersion.window.webContents.send('command:listen', {
+                data: 'Node  is installing!',
+                error: false
+            });
             // Node Version
-            let nodeVersion = await this.NodeManager.getNodeVersion(false);
+            let nodeVersion = await this.NodeManager.getNodeVersion();
             if (nodeVersion.error) {
                 const installNodeWithNvm = await this.tryInstallNodeWithNvm();
                 if (installNodeWithNvm.error) {
                     return resolve(installNodeWithNvm);
                 }
 
-                nodeVersion = await this.NodeManager.getNodeVersion(false);
+                nodeVersion = await this.NodeManager.getNodeVersion();
                 if (nodeVersion.error) {
                     return resolve(nodeVersion);
                 }
             }
             this.NODE_VERSION = nodeVersion.data;
             console.log('%c NODE_VERSION', 'background: #222; color: #bada55', this.NODE_VERSION);
-
-
+            ionicVersion.window.webContents.send('command:listen', {
+                data: 'Node is installed! Version: ' + nodeVersion.data,
+                error: false
+            });
+            ionicVersion.window.webContents.send('command:listen', {
+                data: 'Java  is installing!',
+                error: false
+            });
             // Java Version
             let javaVersion = await this.JavaManager.getJavaVersion();
             if (javaVersion.error) {
@@ -184,14 +272,18 @@ class AndroidCleaner extends ChildProcess {
             }
             this.JAVA_VERSION = javaVersion.data;
             console.log('%c JAVA_VERSION', 'background: #222; color: #bada55', this.JAVA_VERSION);
-            return resolve({ error: false });
+            ionicVersion.window.webContents.send('command:listen', {
+                data: 'Java is installed! Version: ' + javaVersion.data,
+                error: false
+            });
+            return resolve({error: false});
         });
 
     }
 
     async tryInstallBrew() {
         return new Promise(async (resolve) => {
-            const installBrew = await this.BrewManager.installBrew();
+            const installBrew = await this.BrewManager.installBrew('oksn1234');
             return resolve(installBrew);
         });
     }
@@ -261,7 +353,7 @@ class AndroidCleaner extends ChildProcess {
              if (setNode.error) {
                  return resolve(setNode);
              }*/
-            return resolve({ error: false });
+            return resolve({error: false});
         });
     }
 
@@ -286,7 +378,7 @@ class AndroidCleaner extends ChildProcess {
             }
 
 
-            return resolve({ error: false });
+            return resolve({error: false});
         });
     }
 
@@ -294,4 +386,4 @@ class AndroidCleaner extends ChildProcess {
 }
 
 
-module.exports = { AndroidCleaner };
+module.exports = {AndroidCleaner};

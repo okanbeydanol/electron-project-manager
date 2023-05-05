@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <title>Project Manager</title>
     <meta
-        content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;"
-        http-equiv="Content-Security-Policy">
+            content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;"
+            http-equiv="Content-Security-Policy">
     <link href="./styles.css" rel="stylesheet" type="text/css">
     <link href="../../../assets/fonts/SFProDisplay-Regular.otf" rel="stylesheet">
     <link href="../../../assets/fonts/SFProDisplay-Medium.otf" rel="stylesheet">
@@ -49,10 +49,6 @@
             </div>
         </div>
     </div>
-    <textarea id="test-textarea"></textarea>
-    <input id="command_input" name="command_input" placeholder="npm install fs" type="text">
-    <button class="add-new-package-button" id="add-new-package-button">Add new package</button>
-
 </div>
 <div class="error-container --hidden" id="error-container">
     ERROR!!!
@@ -69,8 +65,6 @@
     </div>
 </div>
 </body>
-<script src="../../functions/lib.js"></script>
-<script src="../../../assets/js/jquery.terminal.js"></script>
 <script src="../../ui_control/advanceSettings/renderer.js"></script>
 <script crossorigin="anonymous" src="https://kit.fontawesome.com/82221f9c85.js"></script>
 </html>

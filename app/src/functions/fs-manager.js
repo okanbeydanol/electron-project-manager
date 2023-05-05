@@ -24,10 +24,39 @@ class FsManager {
 
     pathExist(path) {
         if (path !== null && path !== '') {
-            return { data: existsSync(path), error: false };
+            return {data: existsSync(path), error: false};
 
         }
-        return { data: false, error: false };
+        return {data: false, error: false};
+    }
+
+    async tryAccess(path) {
+        console.log('%c path', 'background: #222; color: #bada55', path);
+        return new Promise((resolve) => {
+            const exist = this.pathExist(path);
+            if (!exist.data) {
+                return resolve({
+                    data: null,
+                    error: true,
+                    message: 'Path does`nt exist',
+                    road: 'fs-manager:canAccess:pathExist'
+                });
+            }
+            access(path, constants.R_OK | constants.W_OK, (err) => {
+                if (err !== null) {
+
+                    return resolve({
+                        data: null,
+                        error: true,
+                        message: err.message,
+                        road: 'fs-manager:canAccess:access'
+                    });
+                }
+                console.log('%c data', 'background: #222; color: #bada55', true);
+
+                return resolve({data: true, error: false});
+            });
+        });
     }
 
     addEndingSlash(path) {
@@ -43,10 +72,10 @@ class FsManager {
 
         let text = path;
         if (text.slice(-1) !== '/') {
-            return { data: text + '/', error: false };
+            return {data: text + '/', error: false};
         }
 
-        return { data: text, error: false };
+        return {data: text, error: false};
     }
 
     removeEndingSlash(path) {
@@ -64,7 +93,7 @@ class FsManager {
             return text.substring(0, text.length - 1);
         }
 
-        return { data: text, error: false };
+        return {data: text, error: false};
     }
 
     async getRealPath(path) {
@@ -87,35 +116,11 @@ class FsManager {
                         road: 'fs-manager:getRealPath:realpath'
                     });
                 }
-                return resolve({ data: resolvedPath, error: false });
+                return resolve({data: resolvedPath, error: false});
             });
         });
     }
 
-    async canAccess(path) {
-        return new Promise((resolve) => {
-            const exist = this.pathExist(path);
-            if (!exist.data) {
-                return resolve({
-                    data: null,
-                    error: true,
-                    message: 'Path does`nt exist',
-                    road: 'fs-manager:canAccess:pathExist'
-                });
-            }
-            access(path, constants.R_OK | constants.W_OK, (err) => {
-                if (err !== null) {
-                    return resolve({
-                        data: null,
-                        error: true,
-                        message: err.message,
-                        road: 'fs-manager:canAccess:access'
-                    });
-                }
-                return resolve({ data: true, error: false });
-            });
-        });
-    }
 
     async appendFile(path, data) {
         return new Promise(async (resolve) => {
@@ -136,7 +141,7 @@ class FsManager {
                     message: 'You are trying to append folder instead of file!', road: 'fs-manager:appendFile:isFile'
                 });
             }
-            appendFile(path, data, { encoding: 'utf8', mode: 0o666, flag: 'a' }, (err) => {
+            appendFile(path, data, {encoding: 'utf8', mode: 0o666, flag: 'a'}, (err) => {
                 if (err !== null) {
                     return resolve({
                         data: null,
@@ -145,7 +150,7 @@ class FsManager {
                         road: 'fs-manager:appendFile:appendFile'
                     });
                 }
-                return resolve({ data: true, error: false });
+                return resolve({data: true, error: false});
             });
         });
     }
@@ -163,9 +168,9 @@ class FsManager {
             }
             stat(path, (err, stats) => {
                 if (err !== null) {
-                    resolve({ data: null, error: true, message: err.message, road: 'fs-manager:getStats:stat' });
+                    resolve({data: null, error: true, message: err.message, road: 'fs-manager:getStats:stat'});
                 }
-                resolve({ data: stats, error: false });
+                resolve({data: stats, error: false});
             });
         });
     }
@@ -199,7 +204,7 @@ class FsManager {
                         road: 'fs-manager:copyFile:copyFile'
                     });
                 }
-                return resolve({ data: true, error: false });
+                return resolve({data: true, error: false});
             });
         });
     }
@@ -234,12 +239,12 @@ class FsManager {
                         road: 'fs-manager:copyDirectory:cp'
                     });
                 }
-                return resolve({ data: true, error: false });
+                return resolve({data: true, error: false});
             });
         });
     }
 
-    async mkdir(dest, name, options = { recursive: true }) {
+    async mkdir(dest, name, options = {recursive: true}) {
         return new Promise(async (resolve) => {
             if (!name || name === '') {
                 return resolve({
@@ -286,9 +291,9 @@ class FsManager {
             }
             mkdir(path.data + name, options, (err, path) => {
                 if (err !== null) {
-                    return resolve({ data: null, error: true, message: err.message, road: 'fs-manager:mkdir:mkdir' });
+                    return resolve({data: null, error: true, message: err.message, road: 'fs-manager:mkdir:mkdir'});
                 }
-                return resolve({ data: path, error: false });
+                return resolve({data: path, error: false});
             });
         });
     }
@@ -324,14 +329,14 @@ class FsManager {
 
             open(path, flag, (err, fd) => {
                 if (err !== null) {
-                    return resolve({ data: null, error: true, message: err.message, road: 'fs-manager:openFile:open' });
+                    return resolve({data: null, error: true, message: err.message, road: 'fs-manager:openFile:open'});
                 }
-                return resolve({ data: fd, error: false });
+                return resolve({data: fd, error: false});
             });
         });
     }
 
-    async openDir(path, options = { encoding: 'utf8' }) {
+    async openDir(path, options = {encoding: 'utf8'}) {
         return new Promise(async (resolve) => {
             const exist = this.pathExist(path);
             if (!exist.data) {
@@ -369,12 +374,12 @@ class FsManager {
                         road: 'fs-manager:openDir:opendir'
                     });
                 }
-                return resolve({ data: fd, error: false });
+                return resolve({data: fd, error: false});
             });
         });
     }
 
-    async readDir(path, options = { encoding: 'utf8', withFileTypes: true }) {
+    async readDir(path, options = {encoding: 'utf8', withFileTypes: true}) {
         return new Promise(async (resolve) => {
             const exist = this.pathExist(path);
             if (!exist.data) {
@@ -414,14 +419,14 @@ class FsManager {
                 }
                 const data = [];
                 files.map((value, index, array) => {
-                    data.push({ name: value.name, isFile: value.isFile(), isDirectory: value.isDirectory() });
+                    data.push({name: value.name, isFile: value.isFile(), isDirectory: value.isDirectory()});
                 });
-                return resolve({ data: data, error: false });
+                return resolve({data: data, error: false});
             });
         });
     }
 
-    async readFile(path, options = { encoding: null, flag: 'r', signal: null }) {
+    async readFile(path, options = {encoding: null, flag: 'r', signal: null}) {
         return new Promise(async (resolve) => {
             const exist = this.pathExist(path);
             if (!exist.data) {
@@ -452,7 +457,7 @@ class FsManager {
             let controller = null;
             if (options.signal === null) {
                 controller = new AbortController();
-                const { signal } = controller;
+                const {signal} = controller;
                 options.signal = signal;
             }
             readFile(path, options, (err, data) => {
@@ -461,7 +466,7 @@ class FsManager {
                         data: null, error: true, message: err.message, road: 'fs-manager:readFile:readFile'
                     });
                 }
-                return resolve({ data: data, error: false, controller: controller });
+                return resolve({data: data, error: false, controller: controller});
             });
         });
     }
@@ -509,9 +514,9 @@ class FsManager {
             newPath = removeSlash.data.replace(last, newName);
             rename(path, newPath, (err, data) => {
                 if (err !== null) {
-                    return resolve({ data: null, error: true, message: err.message, road: 'fs-manager:rename:rename' });
+                    return resolve({data: null, error: true, message: err.message, road: 'fs-manager:rename:rename'});
                 }
-                return resolve({ data: data, error: false });
+                return resolve({data: data, error: false});
             });
         });
     }
@@ -546,14 +551,14 @@ class FsManager {
             }
             rmdir(path, (err) => {
                 if (err !== null) {
-                    return resolve({ data: null, error: true, message: err.message, road: 'fs-manager:rmDir:rmdir' });
+                    return resolve({data: null, error: true, message: err.message, road: 'fs-manager:rmDir:rmdir'});
                 }
-                return resolve({ data: null, error: false });
+                return resolve({data: null, error: false});
             });
         });
     }
 
-    async rmFile(path, options = { force: true, recursive: true }) {
+    async rmFile(path, options = {force: true, recursive: true}) {
         return new Promise(async (resolve) => {
             const exist = this.pathExist(path);
             if (!exist.data) {
@@ -583,14 +588,14 @@ class FsManager {
             }
             rm(path, options, (err) => {
                 if (err !== null) {
-                    return resolve({ data: null, error: true, message: err.message, road: 'fs-manager:rmFile:rm' });
+                    return resolve({data: null, error: true, message: err.message, road: 'fs-manager:rmFile:rm'});
                 }
-                return resolve({ data: null, error: false });
+                return resolve({data: null, error: false});
             });
         });
     }
 
-    async writeFile(path, data, options = { encoding: 'utf8', flag: 'w', mode: 0o666, signal: null }) {
+    async writeFile(path, data, options = {encoding: 'utf8', flag: 'w', mode: 0o666, signal: null}) {
         return new Promise(async (resolve) => {
             const exist = this.pathExist(path);
             if (!exist.data) {
@@ -621,7 +626,7 @@ class FsManager {
             let controller = null;
             if (options.signal === null) {
                 controller = new AbortController();
-                const { signal } = controller;
+                const {signal} = controller;
                 options.signal = signal;
             }
             writeFile(path, data, options, (err) => {
@@ -633,10 +638,10 @@ class FsManager {
                         road: 'fs-manager:writeFile:writeFile'
                     });
                 }
-                return resolve({ data: null, error: false, controller: controller });
+                return resolve({data: null, error: false, controller: controller});
             });
         });
     }
 }
 
-module.exports = { FsManager };
+module.exports = {FsManager};

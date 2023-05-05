@@ -1,4 +1,4 @@
-const { ChildProcess } = require('./child_process');
+const {ChildProcess} = require('./child_process');
 
 class JavaManager extends ChildProcess {
     constructor() {
@@ -23,7 +23,7 @@ class JavaManager extends ChildProcess {
         return new Promise((resolve) => {
             this.execCommand('javac -version', (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Java not install!' });
+                    return resolve({error: true, data: null, message: 'Java not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -46,7 +46,7 @@ class JavaManager extends ChildProcess {
             const command = await this.getSetJavaVersionTextEcho(java_version);
             await this.execCommand(command, (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Java cannot set!' });
+                    return resolve({error: true, data: null, message: 'Java cannot set!'});
                 }
                 if (event.type === 'stdout:end' && !event.error) {
                     return resolve({
@@ -68,7 +68,7 @@ class JavaManager extends ChildProcess {
         return new Promise((resolve) => {
             this.execCommand('/usr/libexec/java_home -V', (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Java not install!' });
+                    return resolve({error: true, data: null, message: 'Java not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     const replace = event.data.replace(/(\/*Matching Java Virtual Machines \(4\):\n +\/*)/, '');
@@ -103,9 +103,9 @@ class JavaManager extends ChildProcess {
             const virtualMachines = await this.getJavaVirtualMachines();
             const find = virtualMachines.data.find((o) => o.startsWith(java_version));
             if (find) {
-                return resolve({ error: false, data: find });
+                return resolve({error: false, data: find});
             }
-            return resolve({ error: true, data: null });
+            return resolve({error: true, data: null});
         });
     }
 
@@ -113,7 +113,7 @@ class JavaManager extends ChildProcess {
         return new Promise((resolve) => {
             this.execCommand('/usr/libexec/java_home -v ' + java_version, (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Java not install!' });
+                    return resolve({error: true, data: null, message: 'Java not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -153,15 +153,15 @@ class JavaManager extends ChildProcess {
                 return resolve(setJavaVersion);
             }
 
-            return resolve({ error: false });
+            return resolve({error: false});
         });
     }
 
     async brewInstallZulu8() {
         return new Promise((resolve) => {
-            this.execCommand('brew install --cask zulu8', (event) => {
+            this.execCommand('eval "$(~/homebrew/bin/brew shellenv)"&&brew install --cask zulu8', (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Brew Java Zulu8 can not install!' });
+                    return resolve({error: true, data: null, message: 'Brew Java Zulu8 can not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -184,7 +184,7 @@ class JavaManager extends ChildProcess {
         return new Promise((resolve) => {
             this.execCommand('brew tap homebrew/cask-versions', (event) => {
                 if (event.error) {
-                    return resolve({ error: true, data: null, message: 'Brew Cask can not install!' });
+                    return resolve({error: true, data: null, message: 'Brew Cask can not install!'});
                 }
                 if (event.type === 'stdout:end' && !event.error && event.data !== '') {
                     return resolve({
@@ -206,4 +206,4 @@ class JavaManager extends ChildProcess {
 }
 
 
-module.exports = { JavaManager };
+module.exports = {JavaManager};

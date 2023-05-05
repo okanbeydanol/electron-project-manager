@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer, shell } = require('electron');
+const {contextBridge, ipcRenderer, shell} = require('electron');
 
 contextBridge.exposeInMainWorld('mode', {
     switch: () => ipcRenderer.invoke('switch-checked:toggle')
@@ -18,10 +18,15 @@ contextBridge.exposeInMainWorld('projectDetail', {
     startRead: () => ipcRenderer.invoke('projectDetail:startRead'),
     openAdvanceSettings: () => ipcRenderer.invoke('projectDetail:openAdvanceSettings'),
     startReadAdvance: () => ipcRenderer.invoke('projectDetail:startReadAdvance'),
-    addPackage: (plugin_name) => ipcRenderer.invoke('projectDetail:addPackage', plugin_name),
     addPackageResponse: (callback) => ipcRenderer.on('projectDetail:addPackageResponse', callback),
     stopProcess: (addPackage) => ipcRenderer.invoke('projectDetail:stopProcess', addPackage),
+    addPackage: (plugin_name) => ipcRenderer.invoke('projectDetail:addPackage', plugin_name),
     startTerminal: () => ipcRenderer.invoke('projectDetail:startTerminal'),
     abortTerminal: () => ipcRenderer.invoke('projectDetail:abortTerminal'),
-    abortControllerChanged: (abortController) => ipcRenderer.invoke('abortController', abortController)
+    abortControllerChanged: (abortController) => ipcRenderer.invoke('abortController', abortController),
+    startAndroidCleaner: () => ipcRenderer.invoke('projectDetail:startAndroidCleaner'),
+});
+contextBridge.exposeInMainWorld('terminalDetail', {
+    listenCommandNode: (callback) => ipcRenderer.on('command:listen', callback),
+    sendCommandNode: (value) => ipcRenderer.invoke('command:send', value ? value : ''),
 });

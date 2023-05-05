@@ -54,25 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            let addPackage = null;
-            await window.projectDetail.addPackageResponse((event, value) => {
-                console.log('%c value', 'background: #222; color: #bada55', value);
-                if (value.data !== false && value.data !== '') {
-                    testTextArea.value = testTextArea.value + '\n' + 'type: ' + value.type + ' : ' + value.data;
-                }
-            });
-            addNewPackageButton.addEventListener('click', async () => {
-                addPackage = await window.projectDetail.addPackage(commandInput.value);
-                console.log('%c addPackage', 'background: #222; color: #bada55', addPackage);
-            });
-
-            addNewModulesButton.addEventListener('click', async () => {
-                await window.projectDetail.stopProcess(addPackage);
-            });
-            addPackageButton.addEventListener('click', async () => {
-            });
-
-
         }
     }, 1000);
 });

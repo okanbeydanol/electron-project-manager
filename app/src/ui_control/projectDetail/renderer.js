@@ -3,6 +3,7 @@ const projectContainer = document.getElementById('project-container');
 const errorContainer = document.getElementById('error-container');
 const branchesSelect = document.getElementById('branches');
 const advanceSettings = document.getElementById('advance_settings');
+const androidCleanerButton = document.getElementById('android_cleaner_button');
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -34,7 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
             loaderContainer.classList.add('--hidden');
             projectContainer.classList.remove('--hidden');
         }
-
+        androidCleanerButton.addEventListener('click', () => {
+            window.projectDetail.startAndroidCleaner();
+        });
         if (advanceSettings) {
             advanceSettings.addEventListener('click', async () => {
                 const result = await window.projectDetail.openAdvanceSettings();
